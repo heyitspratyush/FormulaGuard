@@ -76,3 +76,30 @@ Token *parsePrimary(Parser *parser) {
 
     return NULL;
 }
+
+Token *parseTerm(Parser *parser) {
+
+    Token *left = parsePrimary(parser);
+
+    if (left == NULL) {
+        return NULL;
+    }
+
+
+    while (peek(parser)->type == TOKEN_MULTIPLY ||
+           peek(parser)->type == TOKEN_DIVIDE) {
+
+        advance(parser);
+
+        Token *right = parsePrimary(parser);
+
+        if (right == NULL) {
+            return NULL;
+        }
+
+        left = right;
+    }
+
+
+    return left;
+}
