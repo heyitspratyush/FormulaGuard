@@ -57,6 +57,9 @@ const char *tokenTypeName(TokenType type) {
         case TOKEN_NOT_EQUAL:
             return "NOT_EQUAL";
 
+        case TOKEN_EOF:
+            return "EOF";
+
         default:
             return "UNKNOWN";
     }
@@ -317,7 +320,8 @@ int lex(const char *formula, Token tokens[]) {
             return -1;
         }
     }
-
+    addToken(tokens, &tokenCount,
+         TOKEN_EOF, "");
 
     return tokenCount;
 }
