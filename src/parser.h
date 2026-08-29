@@ -28,5 +28,6 @@ void expect(Parser *parser, TokenType type);
 Token *parsePrimary(Parser *parser);
 
 Token *parseTerm(Parser *parser);
+Token *parseExpression(Parser *parser);
 
 #endif

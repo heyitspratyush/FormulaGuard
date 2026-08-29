@@ -9,7 +9,7 @@ int main() {
     printf("FormulaGuard Compiler\n\n");
 
 
-    const char *formula = "=A1*B1";
+    const char *formula = "=A1+B1";
 
 
     Token tokens[100];
@@ -44,7 +44,7 @@ int main() {
 
 
     
-   Token *result = parseTerm(&parser);
+   Token *result = parseExpression(&parser);
 
 
     if (result != NULL) {

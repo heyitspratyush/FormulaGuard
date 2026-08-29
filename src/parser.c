@@ -103,3 +103,30 @@ Token *parseTerm(Parser *parser) {
 
     return left;
 }
+
+Token *parseExpression(Parser *parser) {
+
+    Token *left = parseTerm(parser);
+
+    if (left == NULL) {
+        return NULL;
+    }
+
+
+    while (peek(parser)->type == TOKEN_PLUS ||
+           peek(parser)->type == TOKEN_MINUS) {
+
+        advance(parser);
+
+        Token *right = parseTerm(parser);
+
+        if (right == NULL) {
+            return NULL;
+        }
+
+        left = right;
+    }
+
+
+    return left;
+}
