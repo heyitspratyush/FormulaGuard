@@ -1,19 +1,28 @@
 #include <stdio.h>
 
 #include "parser.h"
+#include "ast.h"
 
 
-void initParser(Parser *parser,
-                Token tokens[],
-                int tokenCount) {
+void initParser(
+    Parser *parser,
+    Token tokens[],
+    int tokenCount
+) {
 
     parser->tokens = tokens;
-    parser->tokenCount = tokenCount;
+
     parser->current = 0;
+
+    parser->tokenCount = tokenCount;
 }
 
 
 Token *peek(Parser *parser) {
+
+    if (parser->current >= parser->tokenCount) {
+        return NULL;
+    }
 
     return &parser->tokens[parser->current];
 }
@@ -21,110 +30,198 @@ Token *peek(Parser *parser) {
 
 Token *advance(Parser *parser) {
 
-    if (parser->current < parser->tokenCount) {
-
-        parser->current++;
+    if (parser->current >= parser->tokenCount) {
+        return NULL;
     }
 
-    return &parser->tokens[parser->current - 1];
+    return &parser->tokens[parser->current++];
 }
 
 
-int match(Parser *parser, TokenType type) {
+int expect(
+    Parser *parser,
+    TokenType type
+) {
 
-    if (peek(parser)->type == type) {
+    Token *token = peek(parser);
+
+    if (token == NULL) {
+
+        printf("Parser Error: unexpected end of input\n");
+
+        return 0;
+    }
+
+
+    if (token->type != type) {
+
+        printf(
+            "Parser Error: expected %s but found %s\n",
+            tokenTypeName(type),
+            tokenTypeName(token->type)
+        );
+
+        return 0;
+    }
+
+
+    advance(parser);
+
+    return 1;
+}
+
+
+
+
+ASTNode *parsePrimary(Parser *parser) {
+
+    Token *token = peek(parser);
+
+
+    if (token == NULL) {
+        return NULL;
+    }
+
+
+    if (token->type == TOKEN_CELL) {
 
         advance(parser);
 
-        return 1;
+        return createCellNode(token->text);
+    } 
+
+    if (token->type == TOKEN_NUMBER) {
+
+        advance(parser);
+
+        return createNumberNode(token->text);
     }
 
-    return 0;
-}
+    if (token->type == TOKEN_LPAREN) {
+
+        advance(parser);
 
 
-void expect(Parser *parser, TokenType type) {
+        ASTNode *node = parseExpression(parser);
 
-    if (peek(parser)->type != type) {
 
-        printf("Parser Error: expected %s, found %s\n",
-               tokenTypeName(type),
-               tokenTypeName(peek(parser)->type));
+        if (node == NULL) {
 
-        return;
+            return NULL;
+        }
+
+
+        if (!expect(parser, TOKEN_RPAREN)) {
+
+            return NULL;
+        }
+
+
+        return node;
     }
 
-    advance(parser);
-}
-
-
-Token *parsePrimary(Parser *parser) {
-
-    if (peek(parser)->type == TOKEN_CELL) {
-
-        return advance(parser);
-    }
-
-
-    if (peek(parser)->type == TOKEN_NUMBER) {
-
-        return advance(parser);
-    }
-
-
-    printf("Parser Error: expected CELL or NUMBER\n");
 
     return NULL;
 }
 
-Token *parseTerm(Parser *parser) {
 
-    Token *left = parsePrimary(parser);
+
+
+ASTNode *parseTerm(Parser *parser) {
+
+    ASTNode *left = parsePrimary(parser);
+
 
     if (left == NULL) {
         return NULL;
     }
 
 
-    while (peek(parser)->type == TOKEN_MULTIPLY ||
-           peek(parser)->type == TOKEN_DIVIDE) {
+    while (
+        peek(parser) != NULL &&
+        (peek(parser)->type == TOKEN_MULTIPLY ||
+         peek(parser)->type == TOKEN_DIVIDE)
+    ) {
 
-        advance(parser);
+        Token *operator = advance(parser);
 
-        Token *right = parsePrimary(parser);
+
+        ASTNode *right = parsePrimary(parser);
+
 
         if (right == NULL) {
+
+            printf(
+                "Parser Error: expected value after %s\n",
+                operator->text
+            );
+
             return NULL;
         }
 
-        left = right;
+
+        left = createBinaryOpNode(
+            operator->text,
+            left,
+            right
+        );
+
+
+        if (left == NULL) {
+            return NULL;
+        }
     }
 
 
     return left;
 }
 
-Token *parseExpression(Parser *parser) {
 
-    Token *left = parseTerm(parser);
+
+
+ASTNode *parseExpression(Parser *parser) {
+
+    ASTNode *left = parseTerm(parser);
+
 
     if (left == NULL) {
         return NULL;
     }
 
 
-    while (peek(parser)->type == TOKEN_PLUS ||
-           peek(parser)->type == TOKEN_MINUS) {
+    while (
+        peek(parser) != NULL &&
+        (peek(parser)->type == TOKEN_PLUS ||
+         peek(parser)->type == TOKEN_MINUS)
+    ) {
 
-        advance(parser);
+        Token *operator = advance(parser);
 
-        Token *right = parseTerm(parser);
+
+        ASTNode *right = parseTerm(parser);
+
 
         if (right == NULL) {
+
+            printf(
+                "Parser Error: expected value after %s\n",
+                operator->text
+            );
+
             return NULL;
         }
 
-        left = right;
+
+        left = createBinaryOpNode(
+            operator->text,
+            left,
+            right
+        );
+
+
+        if (left == NULL) {
+            return NULL;
+        }
     }
 
 

@@ -2,32 +2,45 @@
 #define PARSER_H
 
 #include "lexer.h"
+#include "ast.h"
 
 
 typedef struct {
 
     Token *tokens;
-    int tokenCount;
+
     int current;
+
+    int tokenCount;
 
 } Parser;
 
 
-void initParser(Parser *parser,
-                Token tokens[],
-                int tokenCount);
+void initParser(
+    Parser *parser,
+    Token tokens[],
+    int tokenCount
+);
+
 
 Token *peek(Parser *parser);
 
+
 Token *advance(Parser *parser);
 
-int match(Parser *parser, TokenType type);
 
-void expect(Parser *parser, TokenType type);
+int expect(
+    Parser *parser,
+    TokenType type
+);
 
-Token *parsePrimary(Parser *parser);
 
-Token *parseTerm(Parser *parser);
-Token *parseExpression(Parser *parser);
+ASTNode *parsePrimary(Parser *parser);
+
+
+ASTNode *parseTerm(Parser *parser);
+
+
+ASTNode *parseExpression(Parser *parser);
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "ast.h"
 
 
 int main() {
@@ -9,8 +10,8 @@ int main() {
     printf("FormulaGuard Compiler\n\n");
 
 
-    const char *formula = "=A1+B1";
-
+    const char *formula = "=(A1+B1)*C1";
+    //const char *formula = "=A1+B1*C1";
 
     Token tokens[100];
 
@@ -19,6 +20,7 @@ int main() {
 
 
     if (tokenCount == -1) {
+
         return 1;
     }
 
@@ -28,31 +30,50 @@ int main() {
 
     for (int i = 0; i < tokenCount; i++) {
 
-        printf("%-15s %s\n",
-               tokenTypeName(tokens[i].type),
-               tokens[i].text);
+        printf(
+            "%-15s %s\n",
+            tokenTypeName(tokens[i].type),
+            tokens[i].text
+        );
     }
+
 
 
     Parser parser;
 
-    initParser(&parser, tokens, tokenCount);
+    initParser(
+        &parser,
+        tokens,
+        tokenCount
+    );
 
 
-    
-    expect(&parser, TOKEN_EQUAL);
+  
 
+    if (!expect(&parser, TOKEN_EQUAL)) {
 
-    
-   Token *result = parseExpression(&parser);
-
-
-    if (result != NULL) {
-
-        printf("\nParsed token: %s (%s)\n",
-               result->text,
-               tokenTypeName(result->type));
+        return 1;
     }
+
+
+    
+ 
+
+    ASTNode *root = parseExpression(&parser);
+
+
+    if (root == NULL) {
+
+        printf("\nParsing failed.\n");
+
+        return 1;
+    }
+
+
+
+    printf("\nAST:\n\n");
+
+    printAST(root, 0);
 
 
     return 0;
