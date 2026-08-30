@@ -12,7 +12,9 @@ typedef enum {
 
     AST_BINARY_OP,
 
-    AST_FUNCTION
+    AST_FUNCTION,
+
+    AST_RANGE
 
 } ASTNodeType;
 
@@ -45,6 +47,10 @@ ASTNode *createFunctionNode(
     int argumentCount
 );
 
+ASTNode *createRangeNode(
+    ASTNode *start,
+    ASTNode *end
+);
 
 void printAST(ASTNode *node, int depth);
 

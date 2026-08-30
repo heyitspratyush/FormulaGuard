@@ -106,6 +106,34 @@ ASTNode *createFunctionNode(
     return node;
 }
 
+ASTNode *createRangeNode(
+    ASTNode *start,
+    ASTNode *end
+) {
+
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL) {
+
+        printf("AST Error: memory allocation failed\n");
+
+        return NULL;
+    }
+
+    node->type = AST_RANGE;
+
+    node->value[0] = '\0';
+
+    node->left = start;
+
+    node->right = end;
+
+    node->children = NULL;
+
+    node->childCount = 0;
+
+    return node;
+}
 
 void printAST(ASTNode *node, int depth) {
 
@@ -143,6 +171,10 @@ void printAST(ASTNode *node, int depth) {
         }
 
         return;
+    }
+    else if (node->type == AST_RANGE) {
+
+        printf("RANGE\n");
     }
 
     printAST(node->left, depth + 1);

@@ -184,12 +184,68 @@ ASTNode *parsePrimary(Parser *parser) {
         );
     }
 
-    if (token->type == TOKEN_CELL) {
+   if (token->type == TOKEN_CELL) {
+
+        /* Consume the first cell */
 
         advance(parser);
 
-        return createCellNode(token->text);
-    } 
+        ASTNode *start = createCellNode(token->text);
+
+        if (start == NULL) {
+
+            return NULL;
+        }
+
+
+        /* Check whether this is a range */
+
+        if (peek(parser) != NULL && peek(parser)->type == TOKEN_COLON) {
+
+            /* Consume ':' */
+
+            advance(parser);
+
+
+            /* The token after ':' must be a cell */
+
+            Token *endToken = peek(parser);
+
+            if (endToken == NULL ||endToken->type != TOKEN_CELL) {
+
+                printf("Parser Error: expected cell after ':'\n");
+
+                freeAST(start);
+
+                return NULL;
+            }
+
+
+            /* Consume the ending cell */
+
+            advance(parser);
+
+
+            ASTNode *end =createCellNode(endToken->text);
+
+            if (end == NULL) {
+
+                freeAST(start);
+
+                return NULL;
+            }
+
+
+            /* Create the RANGE node */
+
+            return createRangeNode(start,end);
+        }
+
+
+        /* Normal cell */
+
+        return start;
+    }
 
     if (token->type == TOKEN_NUMBER) {
 

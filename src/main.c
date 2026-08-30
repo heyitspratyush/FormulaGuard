@@ -12,7 +12,10 @@ int main() {
 
    // const char *formula = "=(A1+B1)*C1";
     //const char *formula = "=A1+B1*C1";
-    const char *formula = "=SUM(A1,B1,C1)";
+    //const char *formula = "=SUM(A1,B1,C1)";
+    //const char *formula = "=A1:B10";
+   // const char *formula = "=SUM(A1:B10)";
+   const char *formula = "=SUM(A1:B10,C1:D20)";
 
     Token tokens[100];
 
