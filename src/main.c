@@ -8,34 +8,19 @@
 int main() {
 
     printf("FormulaGuard Compiler\n\n");
-
-
-   // const char *formula = "=(A1+B1)*C1";
-    //const char *formula = "=A1+B1*C1";
-    //const char *formula = "=SUM(A1,B1,C1)";
-    //const char *formula = "=A1:B10";
-   // const char *formula = "=SUM(A1:B10)";
-   //const char *formula = "=SUM(A1:B10,C1:D20)";
-   //const char *formula = "=A1<=10";
-   //const char *formula = "=A1+5>B1*2";
-   //const char *formula = "=IF(A1>10,B1,C1)";
-   //const char *formula = "=SUM(A1:B10,C1*2)";
+   
    const char *formula = "=IF(A1>10,SUM(B1:C5),D1)";
 
     Token tokens[100];
 
-
     int tokenCount = lex(formula, tokens);
-
 
     if (tokenCount == -1) {
 
         return 1;
     }
 
-
     printf("Tokens:\n\n");
-
 
     for (int i = 0; i < tokenCount; i++) {
 
@@ -46,8 +31,6 @@ int main() {
         );
     }
 
-
-
     Parser parser;
 
     initParser(
@@ -56,34 +39,21 @@ int main() {
         tokenCount
     );
 
-
-  
-
     if (!expect(&parser, TOKEN_EQUAL)) {
 
         return 1;
     }
 
-
-    
- 
-
     ASTNode *root = parseComparison(&parser);
 
-
     if (root == NULL) {
-
         printf("\nParsing failed.\n");
-
         return 1;
     }
-
-
-
     printf("\nAST:\n\n");
-
     printAST(root, 0);
 
+    freeAST(root);
 
     return 0;
 }
