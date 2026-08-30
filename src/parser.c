@@ -98,7 +98,7 @@ ASTNode *parsePrimary(Parser *parser) {
 
         /* Parse first argument */
 
-        ASTNode *argument = parseExpression(parser);
+        ASTNode *argument = parseComparison(parser);
 
         if (argument == NULL) {
 
@@ -131,7 +131,7 @@ ASTNode *parsePrimary(Parser *parser) {
 
             /* Parse next argument */
 
-            argument = parseExpression(parser);
+            argument = parseComparison(parser);
 
             if (argument == NULL) {
 
@@ -357,6 +357,58 @@ ASTNode *parseExpression(Parser *parser) {
 
         ASTNode *right = parseTerm(parser);
 
+
+        if (right == NULL) {
+
+            printf(
+                "Parser Error: expected value after %s\n",
+                operator->text
+            );
+
+            return NULL;
+        }
+
+
+        left = createBinaryOpNode(
+            operator->text,
+            left,
+            right
+        );
+
+
+        if (left == NULL) {
+            return NULL;
+        }
+    }
+
+
+    return left;
+}
+
+ASTNode *parseComparison(Parser *parser) {
+
+    ASTNode *left = parseExpression(parser);
+
+    if (left == NULL) {
+        return NULL;
+    }
+
+
+    while (
+        peek(parser) != NULL &&
+        (
+            peek(parser)->type == TOKEN_LESS ||
+            peek(parser)->type == TOKEN_GREATER ||
+            peek(parser)->type == TOKEN_LESS_EQUAL ||
+            peek(parser)->type == TOKEN_GREATER_EQUAL ||
+            peek(parser)->type == TOKEN_NOT_EQUAL
+        )
+    ) {
+
+        Token *operator = advance(parser);
+
+
+        ASTNode *right = parseExpression(parser);
 
         if (right == NULL) {
 

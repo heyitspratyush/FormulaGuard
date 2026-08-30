@@ -43,4 +43,6 @@ ASTNode *parseTerm(Parser *parser);
 
 ASTNode *parseExpression(Parser *parser);
 
+ASTNode *parseComparison(Parser *parser);
+
 #endif

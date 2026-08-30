@@ -15,7 +15,12 @@ int main() {
     //const char *formula = "=SUM(A1,B1,C1)";
     //const char *formula = "=A1:B10";
    // const char *formula = "=SUM(A1:B10)";
-   const char *formula = "=SUM(A1:B10,C1:D20)";
+   //const char *formula = "=SUM(A1:B10,C1:D20)";
+   //const char *formula = "=A1<=10";
+   //const char *formula = "=A1+5>B1*2";
+   //const char *formula = "=IF(A1>10,B1,C1)";
+   //const char *formula = "=SUM(A1:B10,C1*2)";
+   const char *formula = "=IF(A1>10,SUM(B1:C5),D1)";
 
     Token tokens[100];
 
@@ -63,7 +68,7 @@ int main() {
     
  
 
-    ASTNode *root = parseExpression(&parser);
+    ASTNode *root = parseComparison(&parser);
 
 
     if (root == NULL) {
