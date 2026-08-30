@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "parser.h"
 #include "ast.h"
 
@@ -82,6 +82,107 @@ ASTNode *parsePrimary(Parser *parser) {
         return NULL;
     }
 
+    if (token->type == TOKEN_FUNCTION) {
+
+        Token *functionToken = advance(parser);
+
+        if (!expect(parser, TOKEN_LPAREN)) {
+            return NULL;
+        }
+
+
+        ASTNode **arguments = NULL;
+
+        int argumentCount = 0;
+
+
+        /* Parse first argument */
+
+        ASTNode *argument = parseExpression(parser);
+
+        if (argument == NULL) {
+
+            printf("Parser Error: expected function argument\n");
+
+            return NULL;
+        }
+
+
+        arguments = malloc(sizeof(ASTNode *));
+
+        if (arguments == NULL) {
+
+            printf("Parser Error: memory allocation failed\n");
+
+            return NULL;
+        }
+
+
+        arguments[0] = argument;
+
+        argumentCount++;
+
+        while (peek(parser) != NULL &&peek(parser)->type == TOKEN_COMMA) {
+
+        /* Consume comma */
+
+            advance(parser);
+
+
+            /* Parse next argument */
+
+            argument = parseExpression(parser);
+
+            if (argument == NULL) {
+
+                printf("Parser Error: expected function argument\n");
+
+                free(arguments);
+
+                return NULL;
+            }
+
+
+            /* Make room for one more argument */
+
+            ASTNode **newArguments = realloc(
+                arguments,
+                sizeof(ASTNode *) * (argumentCount + 1)
+            );
+
+            if (newArguments == NULL) {
+
+                printf("Parser Error: memory allocation failed\n");
+
+                free(arguments);
+
+                return NULL;
+            }
+
+
+            arguments = newArguments;
+
+
+            /* Store the new argument */
+
+            arguments[argumentCount] = argument;
+
+            argumentCount++;
+        }
+        if (!expect(parser, TOKEN_RPAREN)) {
+
+            free(arguments);
+
+            return NULL;
+        }
+
+
+        return createFunctionNode(
+            functionToken->text,
+            arguments,
+            argumentCount
+        );
+    }
 
     if (token->type == TOKEN_CELL) {
 

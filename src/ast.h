@@ -10,7 +10,9 @@ typedef enum {
 
     AST_NUMBER,
 
-    AST_BINARY_OP
+    AST_BINARY_OP,
+
+    AST_FUNCTION
 
 } ASTNodeType;
 
@@ -25,6 +27,9 @@ typedef struct ASTNode {
 
     struct ASTNode *right;
 
+    struct ASTNode **children;
+    int childCount;
+
 } ASTNode;
 
 
@@ -33,6 +38,12 @@ ASTNode *createCellNode(const char *value);
 ASTNode *createNumberNode(const char *value);
 
 ASTNode *createBinaryOpNode(const char *operator,ASTNode *left,ASTNode *right);
+
+ASTNode *createFunctionNode(
+    const char *functionName,
+    ASTNode **argument,
+    int argumentCount
+);
 
 
 void printAST(ASTNode *node, int depth);

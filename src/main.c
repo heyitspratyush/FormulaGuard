@@ -10,8 +10,9 @@ int main() {
     printf("FormulaGuard Compiler\n\n");
 
 
-    const char *formula = "=(A1+B1)*C1";
+   // const char *formula = "=(A1+B1)*C1";
     //const char *formula = "=A1+B1*C1";
+    const char *formula = "=SUM(A1,B1,C1)";
 
     Token tokens[100];
 

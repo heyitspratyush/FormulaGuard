@@ -18,6 +18,7 @@ typedef enum {
     TOKEN_LESS_EQUAL,
     TOKEN_GREATER_EQUAL,
     TOKEN_NOT_EQUAL,
+    TOKEN_COMMA,
     TOKEN_EOF,
 } TokenType;
 

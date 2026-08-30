@@ -22,6 +22,9 @@ ASTNode *createCellNode(const char *value) {
 
     node->right = NULL;
 
+    node->children = NULL;
+    node->childCount = 0;
+
 
     return node;
 }
@@ -43,6 +46,9 @@ ASTNode *createNumberNode(const char *value) {
     node->left = NULL;
 
     node->right = NULL;
+
+    node->children = NULL;
+    node->childCount = 0;
 
 
     return node;
@@ -70,6 +76,36 @@ ASTNode *createBinaryOpNode(const char *operator,ASTNode *left,ASTNode *right) {
     return node;
 }
 
+ASTNode *createFunctionNode(
+    const char *functionName,
+    ASTNode **arguments,
+    int argumentCount
+) {
+
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL) {
+
+        printf("AST Error: memory allocation failed\n");
+
+        return NULL;
+    }
+
+    node->type = AST_FUNCTION;
+
+    strcpy(node->value, functionName);
+
+    node->left = NULL;
+
+    node->right = NULL;
+
+    node->children = arguments;
+
+    node->childCount = argumentCount;
+
+    return node;
+}
+
 
 void printAST(ASTNode *node, int depth) {
 
@@ -91,6 +127,22 @@ void printAST(ASTNode *node, int depth) {
 
     else if (node->type == AST_BINARY_OP) {
         printf("OPERATOR: %s\n", node->value);
+    }
+
+   
+    else if (node->type == AST_FUNCTION) {
+
+        printf("FUNCTION: %s\n", node->value);
+
+        for (int i = 0; i < node->childCount; i++) {
+
+            printAST(
+                node->children[i],
+                depth + 1
+            );
+        }
+
+        return;
     }
 
     printAST(node->left, depth + 1);

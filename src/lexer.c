@@ -57,6 +57,9 @@ const char *tokenTypeName(TokenType type) {
         case TOKEN_NOT_EQUAL:
             return "NOT_EQUAL";
 
+        case TOKEN_COMMA:
+            return "COMMA";
+
         case TOKEN_EOF:
             return "EOF";
 
@@ -256,6 +259,16 @@ int lex(const char *formula, Token tokens[]) {
 
             addToken(tokens, &tokenCount,
                      TOKEN_COLON, ":");
+
+            formula++;
+        }
+
+        /* Comma */
+
+        else if (*formula == ',') {
+
+            addToken(tokens, &tokenCount,
+                    TOKEN_COMMA, ",");
 
             formula++;
         }
