@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
+#include "semantic.h"
 
 
 int main() {
@@ -52,6 +53,14 @@ int main() {
     }
     printf("\nAST:\n\n");
     printAST(root, 0);
+    printf("\nSemantic Analysis:\n\n");
+
+    if (analyzeAST(root)) {
+        printf("Semantic analysis successful.\n");
+    }
+    else {
+        printf("Semantic error detected.\n");
+    }
 
     freeAST(root);
 
