@@ -426,6 +426,104 @@ void testInvalidZeroRowReference() {
 
     freeAST(node);
 }
+void testValidRange() {
+
+    ASTNode *start =
+        createCellNode("A1");
+
+    ASTNode *end =
+        createCellNode("B5");
+
+    ASTNode *node =
+        createRangeNode(start, end);
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "A1:B5 is a valid range",
+        result,
+        1,
+        SEM_RANGE
+    );
+
+    freeAST(node);
+}
+
+
+void testValidMultiLetterRange() {
+
+    ASTNode *start =
+        createCellNode("AA1");
+
+    ASTNode *end =
+        createCellNode("BC27");
+
+    ASTNode *node =
+        createRangeNode(start, end);
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "AA1:BC27 is a valid range",
+        result,
+        1,
+        SEM_RANGE
+    );
+
+    freeAST(node);
+}
+
+
+void testInvalidStartCellInRange() {
+
+    ASTNode *start =
+        createCellNode("A0");
+
+    ASTNode *end =
+        createCellNode("B5");
+
+    ASTNode *node =
+        createRangeNode(start, end);
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "A0:B5 is an invalid range",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+}
+
+
+void testInvalidEndCellInRange() {
+
+    ASTNode *start =
+        createCellNode("A1");
+
+    ASTNode *end =
+        createCellNode("B0");
+
+    ASTNode *node =
+        createRangeNode(start, end);
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "A1:B0 is an invalid range",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+}
 
 
 int main() {
@@ -462,6 +560,14 @@ int main() {
     testNotEqual();
 
     testInvalidRangeArithmetic();
+
+    testValidRange();
+
+    testValidMultiLetterRange();
+
+    testInvalidStartCellInRange();
+
+    testInvalidEndCellInRange();
 
 
     printf(
