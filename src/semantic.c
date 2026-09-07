@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<string.h>
 #include "semantic.h"
 
 const char *semanticTypeName(SemanticType type) {
@@ -99,19 +100,34 @@ SemanticResult analyzeAST(ASTNode *node) {
                 analyzeAST(node->right);
 
 
-            if (!leftResult.valid ||
-                !rightResult.valid) {
+            if (
+                strcmp(node->value, "+") == 0 ||
+                strcmp(node->value, "-") == 0 ||
+                strcmp(node->value, "*") == 0 ||
+                strcmp(node->value, "/") == 0
+            ) {
 
-                result.valid = 0;
+                if (
+                    !isScalarType(leftResult.type) ||
+                    !isScalarType(rightResult.type)
+                ) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+                result.type = SEM_NUMBER;
 
                 return result;
             }
+            result.valid = 0;
 
+    return result;
 
-            result.type = SEM_ERROR;
-
-            return result;
         }
+
+          
 
 
         case AST_FUNCTION: {
