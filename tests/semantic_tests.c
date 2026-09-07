@@ -525,6 +525,207 @@ void testInvalidEndCellInRange() {
     freeAST(node);
 }
 
+void testSumWithNumber() {
+
+    ASTNode *argument =
+        createNumberNode("10");
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *));
+
+    arguments[0] = argument;
+
+    ASTNode *node =
+        createFunctionNode(
+            "SUM",
+            arguments,
+            1
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "SUM(NUMBER) produces NUMBER",
+        result,
+        1,
+        SEM_NUMBER
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+void testSumWithCell() {
+
+    ASTNode *argument =
+        createCellNode("A1");
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *));
+
+    arguments[0] = argument;
+
+    ASTNode *node =
+        createFunctionNode(
+            "SUM",
+            arguments,
+            1
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "SUM(CELL) produces NUMBER",
+        result,
+        1,
+        SEM_NUMBER
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+void testSumWithRange() {
+
+    ASTNode *start =
+        createCellNode("A1");
+
+    ASTNode *end =
+        createCellNode("B5");
+
+    ASTNode *range =
+        createRangeNode(
+            start,
+            end
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *));
+
+    arguments[0] = range;
+
+    ASTNode *node =
+        createFunctionNode(
+            "SUM",
+            arguments,
+            1
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "SUM(RANGE) produces NUMBER",
+        result,
+        1,
+        SEM_NUMBER
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+void testSumMultipleArguments() {
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 2);
+
+    arguments[0] =
+        createCellNode("A1");
+
+    arguments[1] =
+        createNumberNode("10");
+
+    ASTNode *node =
+        createFunctionNode(
+            "SUM",
+            arguments,
+            2
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "SUM(CELL, NUMBER) produces NUMBER",
+        result,
+        1,
+        SEM_NUMBER
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+void testSumWithBoolean() {
+
+    ASTNode *left =
+        createCellNode("A1");
+
+    ASTNode *right =
+        createNumberNode("10");
+
+    ASTNode *comparison =
+        createBinaryOpNode(
+            ">",
+            left,
+            right
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *));
+
+    arguments[0] = comparison;
+
+    ASTNode *node =
+        createFunctionNode(
+            "SUM",
+            arguments,
+            1
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "SUM(BOOLEAN) is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+}
+void testUnknownFunction() {
+
+    ASTNode *argument =
+        createCellNode("A1");
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *));
+
+    arguments[0] = argument;
+
+    ASTNode *node =
+        createFunctionNode(
+            "XYZ",
+            arguments,
+            1
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "Unknown function is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
 
 int main() {
 
@@ -568,6 +769,18 @@ int main() {
     testInvalidStartCellInRange();
 
     testInvalidEndCellInRange();
+
+    testSumWithNumber();
+
+    testSumWithCell();
+
+    testSumWithRange();
+
+    testSumMultipleArguments();
+
+    testSumWithBoolean();
+
+    testUnknownFunction();
 
 
     printf(

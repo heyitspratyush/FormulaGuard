@@ -277,6 +277,10 @@ SemanticResult analyzeAST(ASTNode *node) {
 
         case AST_FUNCTION: {
 
+            /*
+            * A function must have at least
+            * one argument.
+            */
             if (node->children == NULL ||
                 node->childCount <= 0) {
 
@@ -286,24 +290,66 @@ SemanticResult analyzeAST(ASTNode *node) {
             }
 
 
-            for (int i = 0;
-                 i < node->childCount;
-                 i++) {
+            /*
+            * Check whether this is the
+            * supported SUM function.
+            */
+            if (strcmp(node->value, "SUM") == 0) {
 
-                SemanticResult argumentResult =
-                    analyzeAST(node->children[i]);
+                /*
+                * Analyze every SUM argument.
+                */
+                for (int i = 0;
+                    i < node->childCount;
+                    i++) {
+
+                    SemanticResult argumentResult =
+                        analyzeAST(node->children[i]);
 
 
-                if (!argumentResult.valid) {
+                    /*
+                    * An invalid argument makes
+                    * the entire SUM invalid.
+                    */
+                    if (!argumentResult.valid) {
 
-                    result.valid = 0;
+                        result.valid = 0;
 
-                    return result;
+                        return result;
+                    }
+
+
+                    /*
+                    * SUM accepts NUMBER, CELL,
+                    * or RANGE arguments.
+                    */
+                    if (
+                        argumentResult.type != SEM_NUMBER &&
+                        argumentResult.type != SEM_CELL &&
+                        argumentResult.type != SEM_RANGE
+                    ) {
+
+                        result.valid = 0;
+
+                        return result;
+                    }
                 }
+
+
+                /*
+                * SUM always produces a NUMBER.
+                */
+                result.type = SEM_NUMBER;
+
+                return result;
             }
 
 
-            result.type = SEM_ERROR;
+            /*
+            * Other functions are not yet
+            * supported by the semantic analyzer.
+            */
+            result.valid = 0;
 
             return result;
         }
