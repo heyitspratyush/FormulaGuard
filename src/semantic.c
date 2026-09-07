@@ -1,70 +1,157 @@
 #include <stdio.h>
 #include "semantic.h"
 
-int analyzeAST(ASTNode *node) {
+const char *semanticTypeName(SemanticType type) {
+
+    switch (type) {
+
+        case SEM_NUMBER:
+            return "NUMBER";
+
+        case SEM_CELL:
+            return "CELL";
+
+        case SEM_RANGE:
+            return "RANGE";
+
+        case SEM_BOOLEAN:
+            return "BOOLEAN";
+
+        case SEM_ERROR:
+            return "ERROR";
+
+        default:
+            return "UNKNOWN";
+    }
+}
+
+int isScalarType(SemanticType type) {
+
+    return (
+        type == SEM_NUMBER ||
+        type == SEM_CELL
+    );
+}
+
+SemanticResult analyzeAST(ASTNode *node) {
+
+    SemanticResult result;
+
+    result.valid = 1;
+    result.type = SEM_ERROR;
+
 
     if (node == NULL) {
-        return 0;
+
+        result.valid = 0;
+
+        return result;
     }
+
 
     switch (node->type) {
 
         case AST_NUMBER:
-            return 1;
+
+            result.type = SEM_NUMBER;
+
+            return result;
+
 
         case AST_CELL:
-            return 1;
+
+            result.type = SEM_CELL;
+
+            return result;
+
 
         case AST_RANGE:
 
             if (node->left == NULL ||
                 node->right == NULL) {
-                return 0;
+
+                result.valid = 0;
+
+                return result;
             }
+
 
             if (node->left->type != AST_CELL ||
                 node->right->type != AST_CELL) {
-                return 0;
+
+                result.valid = 0;
+
+                return result;
             }
 
-            return 1;
 
-        case AST_BINARY_OP:
+            result.type = SEM_RANGE;
 
-            if (node->left == NULL ||
-                node->right == NULL) {
-                return 0;
+            return result;
+
+
+        case AST_BINARY_OP: {
+
+            SemanticResult leftResult =
+                analyzeAST(node->left);
+
+            SemanticResult rightResult =
+                analyzeAST(node->right);
+
+
+            if (!leftResult.valid ||
+                !rightResult.valid) {
+
+                result.valid = 0;
+
+                return result;
             }
 
-            if (!analyzeAST(node->left)) {
-                return 0;
+
+            result.type = SEM_ERROR;
+
+            return result;
+        }
+
+
+        case AST_FUNCTION: {
+
+            if (node->children == NULL ||
+                node->childCount <= 0) {
+
+                result.valid = 0;
+
+                return result;
             }
 
-            if (!analyzeAST(node->right)) {
-                return 0;
-            }
-
-            return 1;
-
-        case AST_FUNCTION:
-
-            if (node->childCount <= 0 ||
-                node->children == NULL) {
-                return 0;
-            }
 
             for (int i = 0;
                  i < node->childCount;
                  i++) {
 
-                if (!analyzeAST(node->children[i])) {
-                    return 0;
+                SemanticResult argumentResult =
+                    analyzeAST(node->children[i]);
+
+
+                if (!argumentResult.valid) {
+
+                    result.valid = 0;
+
+                    return result;
                 }
             }
 
-            return 1;
+
+            result.type = SEM_ERROR;
+
+            return result;
+        }
+
 
         default:
-            return 0;
+
+            result.valid = 0;
+
+            return result;
     }
 }

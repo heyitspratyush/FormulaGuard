@@ -53,13 +53,28 @@ int main() {
     }
     printf("\nAST:\n\n");
     printAST(root, 0);
+
     printf("\nSemantic Analysis:\n\n");
 
-    if (analyzeAST(root)) {
-        printf("Semantic analysis successful.\n");
+   SemanticResult semanticResult = analyzeAST(root);
+
+    if (semanticResult.valid) {
+
+        printf(
+            "Semantic analysis successful.\n"
+        );
+
+        printf(
+            "Result type: %s\n",
+            semanticTypeName(semanticResult.type)
+        );
+
     }
     else {
-        printf("Semantic error detected.\n");
+
+        printf(
+            "Semantic error detected.\n"
+        );
     }
 
     freeAST(root);
