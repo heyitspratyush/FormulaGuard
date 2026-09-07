@@ -371,6 +371,61 @@ void testInvalidRangeArithmetic() {
 
     freeAST(node);
 }
+void testValidCellReference() {
+
+    ASTNode *node =
+        createCellNode("A1");
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "A1 is a valid cell reference",
+        result,
+        1,
+        SEM_CELL
+    );
+
+    freeAST(node);
+}
+
+
+void testValidMultiLetterCellReference() {
+
+    ASTNode *node =
+        createCellNode("AA27");
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "AA27 is a valid cell reference",
+        result,
+        1,
+        SEM_CELL
+    );
+
+    freeAST(node);
+}
+
+
+void testInvalidZeroRowReference() {
+
+    ASTNode *node =
+        createCellNode("A0");
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "A0 is an invalid cell reference",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+}
 
 
 int main() {
@@ -381,6 +436,12 @@ int main() {
     testNumber();
 
     testCell();
+
+    testValidCellReference();
+
+    testValidMultiLetterCellReference();
+
+    testInvalidZeroRowReference();
 
     testRange();
 
