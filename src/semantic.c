@@ -121,9 +121,32 @@ SemanticResult analyzeAST(ASTNode *node) {
 
                 return result;
             }
+            if (
+                strcmp(node->value, "<") == 0 ||
+                strcmp(node->value, ">") == 0 ||
+                strcmp(node->value, "<=") == 0 ||
+                strcmp(node->value, ">=") == 0 ||
+                strcmp(node->value, "<>") == 0
+            ) {
+
+                if (
+                    !isScalarType(leftResult.type) ||
+                    !isScalarType(rightResult.type)
+                ) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                result.type = SEM_BOOLEAN;
+
+                return result;
+            }
             result.valid = 0;
 
-    return result;
+            return result;
 
         }
 
