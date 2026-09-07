@@ -724,6 +724,225 @@ void testUnknownFunction() {
     freeAST(node);
     free(arguments);
 }
+void testIfWithNumberBranches() {
+
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 3);
+
+    arguments[0] = condition;
+    arguments[1] = createNumberNode("100");
+    arguments[2] = createNumberNode("200");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            3
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF(BOOLEAN, NUMBER, NUMBER) produces NUMBER",
+        result,
+        1,
+        SEM_NUMBER
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
+void testIfWithCellBranches() {
+
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 3);
+
+    arguments[0] = condition;
+    arguments[1] = createCellNode("B1");
+    arguments[2] = createCellNode("C1");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            3
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF(BOOLEAN, CELL, CELL) produces CELL",
+        result,
+        1,
+        SEM_CELL
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
+void testIfWithInvalidCondition() {
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 3);
+
+    arguments[0] = createCellNode("A1");
+    arguments[1] = createNumberNode("100");
+    arguments[2] = createNumberNode("200");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            3
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF with CELL condition is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
+void testIfWithMismatchedBranches() {
+
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 3);
+
+    arguments[0] = condition;
+    arguments[1] = createNumberNode("100");
+    arguments[2] = createCellNode("B1");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            3
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF with mismatched branch types is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
+void testIfWithTooFewArguments() {
+
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 2);
+
+    arguments[0] = condition;
+    arguments[1] = createNumberNode("100");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            2
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF with too few arguments is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+    free(arguments);
+}
+
+
+void testIfWithTooManyArguments() {
+
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 4);
+
+    arguments[0] = condition;
+    arguments[1] = createNumberNode("100");
+    arguments[2] = createNumberNode("200");
+    arguments[3] = createNumberNode("300");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            4
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF with too many arguments is invalid",
+        result,
+        0,
+        SEM_ERROR
+    );
+
+    freeAST(node);
+    free(arguments);
+}
 
 
 
@@ -781,6 +1000,18 @@ int main() {
     testSumWithBoolean();
 
     testUnknownFunction();
+
+    testIfWithNumberBranches();
+
+    testIfWithCellBranches();
+
+    testIfWithInvalidCondition();
+
+    testIfWithMismatchedBranches();
+
+    testIfWithTooFewArguments();
+
+    testIfWithTooManyArguments();
 
 
     printf(

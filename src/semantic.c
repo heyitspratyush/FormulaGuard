@@ -343,6 +343,96 @@ SemanticResult analyzeAST(ASTNode *node) {
 
                 return result;
             }
+            if (strcmp(node->value, "IF") == 0) {
+
+                /*
+                * IF requires exactly
+                * three arguments:
+                *
+                * IF(condition, true_value, false_value)
+                */
+                if (node->childCount != 3) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * Analyze the condition.
+                */
+                SemanticResult conditionResult =
+                    analyzeAST(node->children[0]);
+
+                if (!conditionResult.valid) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * The condition must
+                * produce BOOLEAN.
+                */
+                if (conditionResult.type != SEM_BOOLEAN) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * Analyze the true branch.
+                */
+                SemanticResult trueResult =
+                    analyzeAST(node->children[1]);
+
+                if (!trueResult.valid) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * Analyze the false branch.
+                */
+                SemanticResult falseResult =
+                    analyzeAST(node->children[2]);
+
+                if (!falseResult.valid) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * Both branches must
+                * produce the same type.
+                */
+                if (trueResult.type != falseResult.type) {
+
+                    result.valid = 0;
+
+                    return result;
+                }
+
+
+                /*
+                * IF produces the type
+                * of its branches.
+                */
+                result.type = trueResult.type;
+
+                return result;
+            }
 
 
             /*
