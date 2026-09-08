@@ -1,7 +1,13 @@
 #include <stdio.h>
-#include<string.h>
+#include <string.h>
+
 #include "semantic.h"
 
+
+/*
+ * Convert semantic types into
+ * human-readable names.
+ */
 const char *semanticTypeName(SemanticType type) {
 
     switch (type) {
@@ -26,6 +32,88 @@ const char *semanticTypeName(SemanticType type) {
     }
 }
 
+
+/*
+ * Convert semantic error categories
+ * into readable names.
+ */
+const char *semanticErrorName(
+    SemanticErrorType error
+) {
+
+    switch (error) {
+
+        case SEM_ERROR_NONE:
+            return "NONE";
+
+        case SEM_ERROR_INVALID_CELL:
+            return "INVALID_CELL";
+
+        case SEM_ERROR_INVALID_RANGE:
+            return "INVALID_RANGE";
+
+        case SEM_ERROR_INVALID_OPERATOR:
+            return "INVALID_OPERATOR";
+
+        case SEM_ERROR_UNKNOWN_FUNCTION:
+            return "UNKNOWN_FUNCTION";
+
+        case SEM_ERROR_INVALID_ARGUMENT_COUNT:
+            return "INVALID_ARGUMENT_COUNT";
+
+        case SEM_ERROR_INVALID_ARGUMENT_TYPE:
+            return "INVALID_ARGUMENT_TYPE";
+
+        default:
+            return "UNKNOWN_ERROR";
+    }
+}
+
+
+/*
+ * Convert semantic errors into
+ * user-friendly messages.
+ */
+const char *semanticErrorMessage(
+    SemanticErrorType error
+) {
+
+    switch (error) {
+
+        case SEM_ERROR_NONE:
+            return "No semantic error";
+
+        case SEM_ERROR_INVALID_CELL:
+            return "Invalid cell reference";
+
+        case SEM_ERROR_INVALID_RANGE:
+            return "Invalid cell range";
+
+        case SEM_ERROR_INVALID_OPERATOR:
+            return "Invalid operator";
+
+        case SEM_ERROR_UNKNOWN_FUNCTION:
+            return "Unknown function";
+
+        case SEM_ERROR_INVALID_ARGUMENT_COUNT:
+            return "Invalid function argument count";
+
+        case SEM_ERROR_INVALID_ARGUMENT_TYPE:
+            return "Invalid function or operator argument type";
+
+        default:
+            return "Unknown semantic error";
+    }
+}
+
+
+/*
+ * Determine whether a semantic type
+ * represents a scalar value.
+ *
+ * NUMBER and CELL are treated as
+ * scalar expressions.
+ */
 int isScalarType(SemanticType type) {
 
     return (
@@ -33,92 +121,159 @@ int isScalarType(SemanticType type) {
         type == SEM_CELL
     );
 }
-int isValidCellReference(const char *value) {
 
-    if (value == NULL || value[0] == '\0') {
+
+/*
+ * Validate an Excel-style cell
+ * reference.
+ *
+ * Examples:
+ *
+ * A1      -> valid
+ * AA27    -> valid
+ * A0      -> invalid
+ * ABC     -> invalid
+ * 123     -> invalid
+ */
+int isValidCellReference(
+    const char *value
+) {
+
+    if (value == NULL ||
+        value[0] == '\0') {
+
         return 0;
     }
+
 
     int i = 0;
 
+
     /*
-     * Column portion:
-     * one or more letters.
+     * Read column letters.
      */
-    while (value[i] != '\0' &&
-           (
-               (value[i] >= 'A' && value[i] <= 'Z') ||
-               (value[i] >= 'a' && value[i] <= 'z')
-           )) {
+    while (
+        value[i] != '\0' &&
+        (
+            (value[i] >= 'A' &&
+             value[i] <= 'Z') ||
+
+            (value[i] >= 'a' &&
+             value[i] <= 'z')
+        )
+    ) {
 
         i++;
     }
+
 
     /*
      * At least one column letter
-     * must exist.
+     * is required.
      */
     if (i == 0) {
+
         return 0;
     }
 
+
     /*
-     * Row portion:
-     * one or more digits.
+     * Remember where the row
+     * number starts.
      */
     int rowStart = i;
 
-    while (value[i] != '\0' &&
-           value[i] >= '0' &&
-           value[i] <= '9') {
+
+    /*
+     * Read row digits.
+     */
+    while (
+        value[i] != '\0' &&
+        value[i] >= '0' &&
+        value[i] <= '9'
+    ) {
 
         i++;
     }
 
+
     /*
-     * There must be at least one digit.
+     * At least one row digit
+     * is required.
      */
     if (i == rowStart) {
+
         return 0;
     }
 
+
     /*
-     * Nothing other than column letters
-     * and row digits is allowed.
+     * No other characters are allowed.
      */
     if (value[i] != '\0') {
+
         return 0;
     }
+
 
     /*
      * Check that the row is not zero.
      */
     int row = 0;
 
-    for (int j = rowStart; j < i; j++) {
+    for (
+        int j = rowStart;
+        j < i;
+        j++
+    ) {
 
-        row = row * 10 + (value[j] - '0');
+        row =
+            row * 10 +
+            (value[j] - '0');
 
+        /*
+         * We only need to know whether
+         * the row is greater than zero.
+         */
         if (row > 0) {
+
             break;
         }
     }
 
+
     if (row == 0) {
+
         return 0;
     }
+
 
     return 1;
 }
 
-SemanticResult analyzeAST(ASTNode *node) {
+
+/*
+ * Perform semantic analysis
+ * on an AST node.
+ */
+SemanticResult analyzeAST(
+    ASTNode *node
+) {
 
     SemanticResult result;
 
+
+    /*
+     * Default result.
+     */
     result.valid = 1;
     result.type = SEM_ERROR;
+    result.error = SEM_ERROR_NONE;
 
 
+    /*
+     * NULL is not a valid AST node.
+     */
     if (node == NULL) {
 
         result.valid = 0;
@@ -129,6 +284,10 @@ SemanticResult analyzeAST(ASTNode *node) {
 
     switch (node->type) {
 
+
+        /*
+         * NUMBER
+         */
         case AST_NUMBER:
 
             result.type = SEM_NUMBER;
@@ -136,10 +295,21 @@ SemanticResult analyzeAST(ASTNode *node) {
             return result;
 
 
+        /*
+         * CELL
+         */
         case AST_CELL:
-    
-            if (!isValidCellReference(node->value)) {
+
+            if (
+                !isValidCellReference(
+                    node->value
+                )
+            ) {
+
                 result.valid = 0;
+                result.error =
+                    SEM_ERROR_INVALID_CELL;
+
                 return result;
             }
 
@@ -148,41 +318,48 @@ SemanticResult analyzeAST(ASTNode *node) {
             return result;
 
 
+        /*
+         * RANGE
+         */
         case AST_RANGE: {
 
             /*
-            * A range must have both
-            * a start and an end cell.
-            */
-            if (node->left == NULL ||
-                node->right == NULL) {
+             * A range must have both
+             * endpoints.
+             */
+            if (
+                node->left == NULL ||
+                node->right == NULL
+            ) {
 
                 result.valid = 0;
+                result.error =
+                    SEM_ERROR_INVALID_RANGE;
 
                 return result;
             }
 
 
             /*
-            * Both endpoints must be
-            * AST_CELL nodes.
-            */
-            if (node->left->type != AST_CELL ||
-                node->right->type != AST_CELL) {
+             * Both endpoints must be
+             * CELL nodes.
+             */
+            if (
+                node->left->type != AST_CELL ||
+                node->right->type != AST_CELL
+            ) {
 
                 result.valid = 0;
+                result.error =
+                    SEM_ERROR_INVALID_RANGE;
 
                 return result;
             }
 
 
             /*
-            * Run semantic analysis on
-            * both cell references.
-            *
-            * This reuses isValidCellReference()
-            * through the AST_CELL case.
-            */
+             * Analyze both endpoints.
+             */
             SemanticResult startResult =
                 analyzeAST(node->left);
 
@@ -191,37 +368,70 @@ SemanticResult analyzeAST(ASTNode *node) {
 
 
             /*
-            * If either endpoint is invalid,
-            * the entire range is invalid.
-            */
-            if (!startResult.valid ||
-                !endResult.valid) {
+             * Invalid endpoint means
+             * invalid range.
+             */
+            if (
+                !startResult.valid ||
+                !endResult.valid
+            ) {
 
                 result.valid = 0;
+                result.error =
+                    SEM_ERROR_INVALID_RANGE;
 
                 return result;
             }
 
 
-            /*
-            * Both endpoints are valid cells,
-            * therefore the range is valid.
-            */
             result.type = SEM_RANGE;
 
             return result;
         }
 
 
+        /*
+         * BINARY OPERATOR
+         */
         case AST_BINARY_OP: {
 
             SemanticResult leftResult =
                 analyzeAST(node->left);
 
+            /*
+             * Propagate an invalid
+             * left operand.
+             */
+            if (!leftResult.valid) {
+
+                result.valid = 0;
+                result.error =
+                    leftResult.error;
+
+                return result;
+            }
+
+
             SemanticResult rightResult =
                 analyzeAST(node->right);
 
+            /*
+             * Propagate an invalid
+             * right operand.
+             */
+            if (!rightResult.valid) {
 
+                result.valid = 0;
+                result.error =
+                    rightResult.error;
+
+                return result;
+            }
+
+
+            /*
+             * Arithmetic operators.
+             */
             if (
                 strcmp(node->value, "+") == 0 ||
                 strcmp(node->value, "-") == 0 ||
@@ -229,20 +439,39 @@ SemanticResult analyzeAST(ASTNode *node) {
                 strcmp(node->value, "/") == 0
             ) {
 
+                /*
+                 * Arithmetic requires
+                 * scalar operands.
+                 */
                 if (
-                    !isScalarType(leftResult.type) ||
-                    !isScalarType(rightResult.type)
+                    !isScalarType(
+                        leftResult.type
+                    ) ||
+                    !isScalarType(
+                        rightResult.type
+                    )
                 ) {
 
                     result.valid = 0;
+                    result.error =
+                        SEM_ERROR_INVALID_ARGUMENT_TYPE;
 
                     return result;
                 }
 
+
+                /*
+                 * Arithmetic produces NUMBER.
+                 */
                 result.type = SEM_NUMBER;
 
                 return result;
             }
+
+
+            /*
+             * Comparison operators.
+             */
             if (
                 strcmp(node->value, "<") == 0 ||
                 strcmp(node->value, ">") == 0 ||
@@ -251,78 +480,109 @@ SemanticResult analyzeAST(ASTNode *node) {
                 strcmp(node->value, "<>") == 0
             ) {
 
+                /*
+                 * Comparisons require
+                 * scalar operands.
+                 */
                 if (
-                    !isScalarType(leftResult.type) ||
-                    !isScalarType(rightResult.type)
+                    !isScalarType(
+                        leftResult.type
+                    ) ||
+                    !isScalarType(
+                        rightResult.type
+                    )
                 ) {
 
                     result.valid = 0;
+                    result.error =
+                        SEM_ERROR_INVALID_ARGUMENT_TYPE;
 
                     return result;
                 }
 
 
+                /*
+                 * Comparisons produce BOOLEAN.
+                 */
                 result.type = SEM_BOOLEAN;
 
                 return result;
             }
+
+
+            /*
+             * Operator is not supported.
+             */
             result.valid = 0;
+            result.error =
+                SEM_ERROR_INVALID_OPERATOR;
 
             return result;
-
         }
 
-          
 
-
+        /*
+         * FUNCTION
+         */
         case AST_FUNCTION: {
 
             /*
-            * A function must have at least
-            * one argument.
-            */
-            if (node->children == NULL ||
-                node->childCount <= 0) {
+             * Every supported function
+             * must have arguments.
+             */
+            if (
+                node->children == NULL ||
+                node->childCount <= 0
+            ) {
 
                 result.valid = 0;
+                result.error =
+                    SEM_ERROR_INVALID_ARGUMENT_COUNT;
 
                 return result;
             }
 
 
             /*
-            * Check whether this is the
-            * supported SUM function.
-            */
-            if (strcmp(node->value, "SUM") == 0) {
+             * SUM
+             */
+            if (
+                strcmp(node->value, "SUM") == 0
+            ) {
 
-                /*
-                * Analyze every SUM argument.
-                */
-                for (int i = 0;
+                for (
+                    int i = 0;
                     i < node->childCount;
-                    i++) {
+                    i++
+                ) {
 
                     SemanticResult argumentResult =
-                        analyzeAST(node->children[i]);
+                        analyzeAST(
+                            node->children[i]
+                        );
 
 
                     /*
-                    * An invalid argument makes
-                    * the entire SUM invalid.
-                    */
+                     * Preserve the original
+                     * child error.
+                     */
                     if (!argumentResult.valid) {
 
                         result.valid = 0;
+                        result.error =
+                            argumentResult.error;
 
                         return result;
                     }
 
 
                     /*
-                    * SUM accepts NUMBER, CELL,
-                    * or RANGE arguments.
-                    */
+                     * SUM accepts:
+                     *
+                     * NUMBER
+                     * CELL
+                     * RANGE
+                     */
                     if (
                         argumentResult.type != SEM_NUMBER &&
                         argumentResult.type != SEM_CELL &&
@@ -330,6 +590,8 @@ SemanticResult analyzeAST(ASTNode *node) {
                     ) {
 
                         result.valid = 0;
+                        result.error =
+                            SEM_ERROR_INVALID_ARGUMENT_TYPE;
 
                         return result;
                     }
@@ -337,117 +599,159 @@ SemanticResult analyzeAST(ASTNode *node) {
 
 
                 /*
-                * SUM always produces a NUMBER.
-                */
+                 * SUM produces NUMBER.
+                 */
                 result.type = SEM_NUMBER;
-
-                return result;
-            }
-            if (strcmp(node->value, "IF") == 0) {
-
-                /*
-                * IF requires exactly
-                * three arguments:
-                *
-                * IF(condition, true_value, false_value)
-                */
-                if (node->childCount != 3) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * Analyze the condition.
-                */
-                SemanticResult conditionResult =
-                    analyzeAST(node->children[0]);
-
-                if (!conditionResult.valid) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * The condition must
-                * produce BOOLEAN.
-                */
-                if (conditionResult.type != SEM_BOOLEAN) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * Analyze the true branch.
-                */
-                SemanticResult trueResult =
-                    analyzeAST(node->children[1]);
-
-                if (!trueResult.valid) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * Analyze the false branch.
-                */
-                SemanticResult falseResult =
-                    analyzeAST(node->children[2]);
-
-                if (!falseResult.valid) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * Both branches must
-                * produce the same type.
-                */
-                if (trueResult.type != falseResult.type) {
-
-                    result.valid = 0;
-
-                    return result;
-                }
-
-
-                /*
-                * IF produces the type
-                * of its branches.
-                */
-                result.type = trueResult.type;
 
                 return result;
             }
 
 
             /*
-            * Other functions are not yet
-            * supported by the semantic analyzer.
-            */
+             * IF
+             */
+            if (
+                strcmp(node->value, "IF") == 0
+            ) {
+
+                /*
+                 * IF requires exactly
+                 * three arguments.
+                 */
+                if (
+                    node->childCount != 3
+                ) {
+
+                    result.valid = 0;
+                    result.error =
+                        SEM_ERROR_INVALID_ARGUMENT_COUNT;
+
+                    return result;
+                }
+
+
+                /*
+                 * Analyze condition.
+                 */
+                SemanticResult conditionResult =
+                    analyzeAST(
+                        node->children[0]
+                    );
+
+
+                if (!conditionResult.valid) {
+
+                    result.valid = 0;
+                    result.error =
+                        conditionResult.error;
+
+                    return result;
+                }
+
+
+                /*
+                 * IF condition must
+                 * produce BOOLEAN.
+                 */
+                if (
+                    conditionResult.type !=
+                    SEM_BOOLEAN
+                ) {
+
+                    result.valid = 0;
+                    result.error =
+                        SEM_ERROR_INVALID_ARGUMENT_TYPE;
+
+                    return result;
+                }
+
+
+                /*
+                 * Analyze true branch.
+                 */
+                SemanticResult trueResult =
+                    analyzeAST(
+                        node->children[1]
+                    );
+
+
+                if (!trueResult.valid) {
+
+                    result.valid = 0;
+                    result.error =
+                        trueResult.error;
+
+                    return result;
+                }
+
+
+                /*
+                 * Analyze false branch.
+                 */
+                SemanticResult falseResult =
+                    analyzeAST(
+                        node->children[2]
+                    );
+
+
+                if (!falseResult.valid) {
+
+                    result.valid = 0;
+                    result.error =
+                        falseResult.error;
+
+                    return result;
+                }
+
+
+                /*
+                 * The two branches must
+                 * currently have compatible
+                 * semantic types.
+                 */
+                if (
+                    trueResult.type !=
+                    falseResult.type
+                ) {
+
+                    result.valid = 0;
+                    result.error =
+                        SEM_ERROR_INVALID_ARGUMENT_TYPE;
+
+                    return result;
+                }
+
+
+                /*
+                 * IF produces the type
+                 * of its branches.
+                 */
+                result.type =
+                    trueResult.type;
+
+                return result;
+            }
+
+
+            /*
+             * Function name is not supported.
+             */
             result.valid = 0;
+            result.error =
+                SEM_ERROR_UNKNOWN_FUNCTION;
 
             return result;
         }
 
 
+        /*
+         * Unknown AST node type.
+         */
         default:
 
             result.valid = 0;
+            result.error =
+                SEM_ERROR_INVALID_OPERATOR;
 
             return result;
     }
