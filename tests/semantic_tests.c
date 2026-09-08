@@ -1004,7 +1004,7 @@ void testIfWithInvalidCondition() {
 /*
  * IF(BOOLEAN, NUMBER, CELL)
  */
-void testIfWithMismatchedBranches() {
+void testIfWithScalarBranches() {
 
     ASTNode *condition =
         createBinaryOpNode(
@@ -1031,11 +1031,11 @@ void testIfWithMismatchedBranches() {
         analyzeAST(node);
 
     checkResult(
-        "IF with mismatched branch types is invalid",
+        "IF with NUMBER and CELL branches produces NUMBER",
         result,
-        0,
-        SEM_ERROR,
-        SEM_ERROR_INVALID_ARGUMENT_TYPE
+        1,
+        SEM_NUMBER,
+        SEM_ERROR_NONE
     );
 
     freeAST(node);
@@ -1409,7 +1409,49 @@ void testErrorMessages() {
         failed++;
     }
 }
+void testIfWithRangeBranch() {
 
+    ASTNode *condition =
+        createBinaryOpNode(
+            ">",
+            createCellNode("A1"),
+            createNumberNode("10")
+        );
+
+    ASTNode *range =
+        createRangeNode(
+            createCellNode("B1"),
+            createCellNode("C5")
+        );
+
+    ASTNode **arguments =
+        malloc(sizeof(ASTNode *) * 3);
+
+    arguments[0] = condition;
+    arguments[1] = range;
+    arguments[2] = createNumberNode("100");
+
+    ASTNode *node =
+        createFunctionNode(
+            "IF",
+            arguments,
+            3
+        );
+
+    SemanticResult result =
+        analyzeAST(node);
+
+    checkResult(
+        "IF with RANGE branch is invalid",
+        result,
+        0,
+        SEM_ERROR,
+        SEM_ERROR_INVALID_ARGUMENT_TYPE
+    );
+
+    freeAST(node);
+    free(arguments);
+}
 
 /*
  * Main test runner
@@ -1504,7 +1546,7 @@ int main() {
 
     testIfWithInvalidCondition();
 
-    testIfWithMismatchedBranches();
+    testIfWithScalarBranches();
 
     testIfWithTooFewArguments();
 

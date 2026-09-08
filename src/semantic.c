@@ -709,27 +709,45 @@ SemanticResult analyzeAST(
                  * currently have compatible
                  * semantic types.
                  */
-                if (
-                    trueResult.type !=
-                    falseResult.type
-                ) {
-
-                    result.valid = 0;
-                    result.error =
-                        SEM_ERROR_INVALID_ARGUMENT_TYPE;
-
-                    return result;
-                }
-
-
                 /*
-                 * IF produces the type
-                 * of its branches.
-                 */
-                result.type =
-                    trueResult.type;
+            * Both branches must produce
+            * scalar values.
+            */
+            if (
+                !isScalarType(trueResult.type) ||
+                !isScalarType(falseResult.type)
+            ) {
+
+                result.valid = 0;
+                result.error = SEM_ERROR_INVALID_ARGUMENT_TYPE;
 
                 return result;
+            }
+
+
+            /*
+            * If both branches are CELL,
+            * preserve the CELL type.
+            */
+            if (
+                trueResult.type == SEM_CELL &&
+                falseResult.type == SEM_CELL
+            ) {
+
+                result.type = SEM_CELL;
+
+                return result;
+            }
+
+
+            /*
+            * NUMBER/CELL combinations
+            * produce a scalar NUMBER result.
+            */
+            result.type = SEM_NUMBER;
+
+            return result;
+                            
             }
 
 

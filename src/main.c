@@ -10,7 +10,8 @@ int main() {
 
     printf("FormulaGuard Compiler\n\n");
    
-   const char *formula = "=IF(A1>10,SUM(B1:C5),D1)";
+   //const char *formula = "=IF(A1>10,SUM(B1:C5),D1)";
+   const char *formula = "=SUM(A1:B5)";
 
     Token tokens[100];
 
@@ -70,12 +71,22 @@ int main() {
         );
 
     }
-    else {
+  else {
 
-        printf(
-            "Semantic error detected.\n"
-        );
-    }
+    printf(
+        "Semantic error: %s\n",
+        semanticErrorMessage(
+            semanticResult.error
+        )
+    );
+
+    printf(
+        "Error type: %s\n",
+        semanticErrorName(
+            semanticResult.error
+        )
+    );
+}
 
     freeAST(root);
 
